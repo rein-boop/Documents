@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+   <meta charset = "UTF-8">
+   <title> BOOK INVENTORY </title>
+  
+</head>
+
+<body>
+    <h1> BOOK INVENTORY </h1>
+
+
+    <input type = "text" id = "Name" placeholder = "Name">
+    <input type = "text" id = "student-number" placeholder = "student-number"> 
+    <input type = "text" id = "address-one"  placeholder = "Address 1">
+    <input type = "text" id = "address-two" placeholder = "Address 2">
+    <input type = "text" id = "Book-title" placeholder = "Book Title">
+    <input type = "text" id = "book-author" placeholder = "author">
+
+    <button onclick = "addItem()"> Add</button>
+
+    <hr>
+
+    <table id = "InventoryTable" border = "1">
+
+    </table>
+
+    <hr>
+
+
+ 
+
+
+<script src="{{ url_for('static', filename='Data2ndRoute.js') }}"></script>
+
+</body>
+</html>
+
