@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>UniLab — University Book Inventory</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --cream:    #faf8f4;
+      --white:    #ffffff;
+      --navy:     #0f2044;
+      --navy2:    #1a3361;
+      --gold:     #b8962e;
+      --gold2:    #d4af55;
+      --text:     #1c1c2e;
+      --body:     #4a4a6a;
+      --muted:    #9090b0;
+      --line:     #e8e4dc;
+      --success:  #2d7a4f;
+      --danger:   #c0392b;
+      --nav-h:    72px;
+      --r:        10px;
+      --shadow:   0 4px 24px rgba(15,32,68,.08);
+      --shadow-lg:0 12px 48px rgba(15,32,68,.14);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+
+    body {
+      background: var(--cream);
+      color: var(--text);
+      font-family: 'Outfit', sans-serif;
+      font-weight: 400;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 40px; }
+    .tag-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 100px; font-size: 11px;
+      font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    }
+    .tag-available   { background: #e6f4ec; color: var(--success); border: 1px solid #b8dfc8; }
+    .tag-unavailable { background: #fdecea; color: var(--danger);  border: 1px solid #f3bbb7; }
+
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      height: var(--nav-h);
+      background: rgba(250,248,244,.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+      display: flex; align-items: center;
+    }
+
+    .nav-inner {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; max-width: 1140px; margin: 0 auto; padding: 0 40px;
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 12px;
+      text-decoration: none; cursor: pointer;
+    }
+
+    .nav-logo-mark {
+      width: 40px; height: 40px;
+      background: var(--navy);
+      border-radius: 8px;
+      display: grid; place-items: center;
+      font-size: 18px;
+    }
+
+    .nav-logo-text { display: flex; flex-direction: column; gap: 0; }
+    .nav-logo-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 700; color: var(--navy); line-height: 1;
+    }
+    .nav-logo-sub { font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+
+    .nav-links { display: flex; align-items: center; gap: 8px; list-style: none; }
+
+    .nav-links a {
+      padding: 8px 16px; border-radius: 6px;
+      color: var(--body); text-decoration: none;
+      font-size: 13px; font-weight: 500;
+      transition: background .2s, color .2s;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      background: var(--navy); color: #fff;
+    }
+
+    .nav-links a.active { background: var(--navy); }
+
+    .page { display: none; }
+    .page.active { display: block; }
+
+    .section-head {
+      text-align: center;
+      padding: calc(var(--nav-h) + 72px) 0 56px;
+    }
+
+    .section-eyebrow {
+      display: inline-block;
+      font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 16px;
+    }
+
+    .section-head h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px, 5vw, 52px); font-weight: 700;
+      color: var(--navy); line-height: 1.1; margin-bottom: 16px;
+    }
+
+    .section-head p { font-size: 15px; color: var(--body); max-width: 520px; margin: 0 auto; }
+
+    #page-home {}
+
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 80px;
+      padding: calc(var(--nav-h) + 80px) 0 80px;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(184,150,46,.1); border: 1px solid rgba(184,150,46,.3);
+      border-radius: 100px; padding: 6px 16px;
+      font-size: 11px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
+      color: var(--gold); margin-bottom: 28px;
+      animation: fadeUp .6s ease both;
+    }
+
+    .hero-badge::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: var(--gold); animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .hero h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(42px, 5vw, 64px);
+      font-weight: 700; line-height: 1.08;
+      letter-spacing: -.01em; color: var(--navy);
+      animation: fadeUp .6s .1s ease both;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 em { font-style: italic; color: var(--gold); }
+
+    .hero-desc {
+      font-size: 15px; color: var(--body); line-height: 1.8;
+      max-width: 440px; margin-bottom: 40px;
+      animation: fadeUp .6s .2s ease both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      animation: fadeUp .6s .3s ease both;
+    }
+
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 13px 28px; border-radius: var(--r); font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; border: none; cursor: pointer; text-decoration: none; transition: all .2s; letter-spacing: .01em; }
+    .btn-navy { background: var(--navy); color: #fff; }
+    .btn-navy:hover { background: var(--navy2); box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+    .btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--navy); }
+    .btn-outline:hover { background: var(--navy); color: #fff; }
+    .btn-gold { background: var(--gold); color: #fff; }
+    .btn-gold:hover { background: #a07c22; box-shadow: 0 8px 24px rgba(184,150,46,.3); transform: translateY(-1px); }
+    .btn-sm { padding: 9px 20px; font-size: 12px; }
+
+    .hero-right {
+      display: flex; flex-direction: column; gap: 20px;
+      animation: fadeUp .6s .2s ease both;
+    }
+
+    .hero-card {
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .hero-card-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 22px; font-weight: 700; color: var(--navy); margin-bottom: 20px;
+      padding-bottom: 16px; border-bottom: 1px solid var(--line);
+    }
+
+    .hero-stats-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    }
+
+    .hero-stat-item {
+      background: var(--cream); border-radius: 10px; padding: 18px 20px;
+      border: 1px solid var(--line);
+    }
+
+    .hero-stat-val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px; font-weight: 700; color: var(--navy); line-height: 1;
+    }
+
+    .hero-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 500; letter-spacing: .04em; }
+
+    .hero-avail-bar { margin-top: 20px; }
+    .avail-bar-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--body); margin-bottom: 8px; font-weight: 500; }
+    .avail-bar-track { height: 8px; background: var(--line); border-radius: 100px; overflow: hidden; }
+    .avail-bar-fill  { height: 100%; background: linear-gradient(90deg, var(--success), #5aaa7a); border-radius: 100px; transition: width .8s ease; width: 0%; }
+
+    .features {
+      padding: 80px 0 120px;
+      border-top: 1px solid var(--line);
+    }
+
+    .features-label {
+      text-align: center; font-size: 11px; font-weight: 600; letter-spacing: .18em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: 48px;
+    }
+
+    .features-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+
+    .feature-card {
+      background: var(--white); border: 1px solid var(--line); border-radius: 14px;
+      padding: 28px; transition: box-shadow .25s, transform .25s;
+    }
+
+    .feature-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+
+    .feature-icon {
+      width: 48px; height: 48px; background: var(--cream); border-radius: 12px;
+      display: grid; place-items: center; font-size: 22px; margin-bottom: 18px;
+      border: 1px solid var(--line);
+    }
+
+    .feature-card h3 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 8px; }
+    .feature-card p { font-size: 13px; color: var(--body); line-height: 1.7; }
+
+    .books-filter-bar {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      justify-content: center; margin-bottom: 40px;
+    }
+
+    .filter-btn {
+      padding: 8px 22px; border-radius: 100px; font-size: 12px; font-weight: 600;
+      border: 1.5px solid var(--line); background: var(--white); color: var(--body);
+      cursor: pointer; transition: all .2s; letter-spacing: .02em;
+    }
+
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--navy); color: #fff; border-color: var(--navy);
+    }
+
+    .filter-btn.available.active   { background: var(--success); border-color: var(--success); }
+    .filter-btn.unavailable.active { background: var(--danger);  border-color: var(--danger); }
+
+    .books-search {
+      display: flex; justify-content: center; margin-bottom: 48px;
+    }
+
+    .books-search input {
+      width: 100%; max-width: 440px; padding: 12px 20px;
+      background: var(--white); border: 1.5px solid var(--line);
+      border-radius: 100px; font-family: 'Outfit', sans-serif; font-size: 13px;
+      color: var(--text); outline: none; transition: border-color .2s, box-shadow .2s;
+    }
+
+    .books-search input:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(15,32,68,.08); }
+    .books-search input::placeholder { color: var(--muted); }
+
+    .books-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      padding-bottom: 100px;
+    }
+
+    .book-card {
+      background: var(--white); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden;
+      transition: box-shadow .25s, transform .25s;
+      display: flex; flex-direction: column;
+    }
+
+    .book-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-3px); }
+
+    .book-card-spine { height: 6px; }
+    .book-card-spine.available   { background: linear-gradient(90deg, var(--success), #5aaa7a); }
+    .book-card-spine.unavailable { background: linear-gradient(90deg, var(--danger), #e07070); }
+
+    .book-card-body { padding: 24px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .book-card-status { margin-bottom: 4px; }
+
+    .book-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 19px; font-weight: 700; color: var(--navy); line-height: 1.25;
+    }
+
+    .book-author { font-size: 12px; color: var(--gold); font-weight: 600; letter-spacing: .02em; }
+
+    .book-meta { margin-top: auto; padding-top: 14px; border-top: 1px solid var(--line); }
+    .book-meta-row { display: flex; justify-content: space-between; font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .book-meta-row span:last-child { color: var(--body); font-weight: 500; }
+
+    .books-empty {
+      grid-column: 1/-1; text-align: center;
+      padding: 80px 0; color: var(--muted);
+    }
+
+    .books-empty-icon { font-size: 48px; margin-bottom: 16px; display: block; }
+    .books-empty p { font-size: 14px; }
+
+    .inv-layout {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      gap: 32px;
+      padding-bottom: 100px;
+      align-items: start;
+    }
+
+    .inv-form-card {
+      background: var(--white); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden;
+      box-shadow: var(--shadow); position: sticky; top: calc(var(--nav-h) + 24px);
+    }
+
+    .inv-form-header {
+      padding: 20px 28px; background: var(--navy);
+      display: flex; align-items: center; gap: 12px;
+    }
+
+    .inv-form-header h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px; font-weight: 700; color: #fff;
+    }
+
+    .inv-form-header span { font-size: 20px; }
+
+    .inv-form-body { padding: 24px 28px 28px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-group:last-of-type { margin-bottom: 0; }
+
+    label {
+      font-size: 11px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--body);
+    }
+
+    input[type="text"], select {
+      width: 100%; padding: 10px 14px;
+      background: var(--cream); border: 1.5px solid var(--line);
+      border-radius: 8px; font-family: 'Outfit', sans-serif;
+      font-size: 13px; color: var(--text); outline: none;
+      transition: border-color .2s, box-shadow .2s;
+      appearance: none;
+    }
+
+    input[type="text"]:focus, select:focus {
+      border-color: var(--navy); box-shadow: 0 0 0 3px rgba(15,32,68,.08);
+      background: var(--white);
+    }
+
+    input::placeholder { color: var(--muted); }
+
+    .avail-toggle {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px;
+    }
+
+    .avail-opt {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 9px; border-radius: 8px; border: 1.5px solid var(--line);
+      background: var(--cream); cursor: pointer; font-size: 12px; font-weight: 600;
+      color: var(--body); transition: all .2s; user-select: none;
+    }
+
+    .avail-opt input[type="radio"] { display: none; }
+    .avail-opt.sel-avail   { background: #e6f4ec; border-color: var(--success); color: var(--success); }
+    .avail-opt.sel-unavail { background: #fdecea; border-color: var(--danger);  color: var(--danger); }
+
+    .form-actions-inv { display: flex; gap: 10px; margin-top: 20px; }
+
+    .inv-stats-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
+
+    .inv-stat {
+      background: var(--white); border: 1px solid var(--line); border-radius: 12px;
+      padding: 18px 20px;
+    }
+
+    .inv-stat-val {
+      font-family: 'Cormorant Garamond', serif; font-size: 30px; font-weight: 700;
+      color: var(--navy); line-height: 1;
+    }
+
+    .inv-stat-lbl { font-size: 11px; color: var(--muted); margin-top: 4px; font-weight: 500; }
+
+    .inv-table-card {
+      background: var(--white); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);
+    }
+
+    .inv-table-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 24px; border-bottom: 1px solid var(--line);
+      background: var(--cream);
+    }
+
+    .inv-table-title { font-size: 13px; font-weight: 600; color: var(--navy); }
+
+    .tbl-search {
+      position: relative; display: flex; align-items: center;
+    }
+
+    .tbl-search-icon { position: absolute; left: 10px; color: var(--muted); font-size: 13px; pointer-events: none; }
+
+    .tbl-search input { padding: 7px 12px 7px 30px; font-size: 12px; border-radius: 6px; width: 200px; background: var(--white); }
+
+    .tbl-wrap { overflow-x: auto; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 600px; }
+
+    thead { background: var(--cream); }
+
+    th {
+      padding: 10px 16px; text-align: left; font-size: 10px; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase; color: var(--muted);
+      border-bottom: 1px solid var(--line); white-space: nowrap;
+    }
+
+    tbody tr { border-bottom: 1px solid var(--line); transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(15,32,68,.03); }
+
+    td { padding: 12px 16px; color: var(--text); vertical-align: middle; }
+    td.dim { color: var(--muted); font-size: 11px; }
+
+    .tbl-empty { padding: 56px; text-align: center; color: var(--muted); }
+    .tbl-empty-icon { font-size: 36px; display: block; margin-bottom: 12px; opacity: .4; }
+
+    .about-hero {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 72px;
+      align-items: center; padding-bottom: 80px;
+    }
+
+    .about-hero h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(32px,4vw,48px); font-weight: 700; color: var(--navy);
+      line-height: 1.1; margin-bottom: 20px;
+    }
+
+    .about-hero p { font-size: 14px; color: var(--body); line-height: 1.85; margin-bottom: 16px; }
+
+    .about-img-mock {
+      background: var(--white); border: 1px solid var(--line);
+      border-radius: 16px; padding: 40px;
+      box-shadow: var(--shadow-lg);
+      display: flex; flex-direction: column; gap: 16px;
+    }
+
+    .mock-shelf {
+      display: flex; gap: 8px; align-items: flex-end;
+      padding: 20px 16px 0; border-bottom: 4px solid var(--navy);
+    }
+
+    .mock-book { border-radius: 4px 0 0 4px; flex-shrink: 0; }
+
+    .about-team { padding: 80px 0; border-top: 1px solid var(--line); }
+    .about-team h3 {
+      font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700;
+      color: var(--navy); text-align: center; margin-bottom: 48px;
+    }
+
+    .team-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px; }
+
+    .team-card {
+      background: var(--white); border: 1px solid var(--line); border-radius: 14px;
+      padding: 28px; text-align: center; transition: box-shadow .25s;
+    }
+
+    .team-card:hover { box-shadow: var(--shadow-lg); }
+
+    .team-avatar {
+      width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 16px;
+      display: grid; place-items: center; font-size: 28px;
+      border: 3px solid var(--line);
+    }
+
+    .team-card h4 { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .team-card .role { font-size: 11px; color: var(--gold); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+
+    .about-mission {
+      background: var(--navy); border-radius: 16px; padding: 56px;
+      margin-bottom: 100px; text-align: center; color: #fff;
+    }
+
+    .about-mission h3 { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700; margin-bottom: 16px; }
+    .about-mission p { font-size: 15px; opacity: .8; max-width: 560px; margin: 0 auto; line-height: 1.8; }
+
+    .contact-layout {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 56px;
+      padding-bottom: 100px; align-items: start;
+    }
+
+    .contact-info h3 {
+      font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 700;
+      color: var(--navy); margin-bottom: 16px;
+    }
+
+    .contact-info p { font-size: 14px; color: var(--body); line-height: 1.8; margin-bottom: 32px; }
+
+    .contact-items { display: flex; flex-direction: column; gap: 20px; }
+
+    .contact-item {
+      display: flex; align-items: flex-start; gap: 16px;
+      padding: 20px; background: var(--white); border: 1px solid var(--line);
+      border-radius: 12px; transition: box-shadow .2s;
+    }
+
+    .contact-item:hover { box-shadow: var(--shadow); }
+
+    .contact-item-icon {
+      width: 44px; height: 44px; flex-shrink: 0;
+      background: var(--cream); border: 1px solid var(--line); border-radius: 10px;
+      display: grid; place-items: center; font-size: 20px;
+    }
+
+    .contact-item-body h4 { font-size: 13px; font-weight: 700; color: var(--navy); margin-bottom: 4px; }
+    .contact-item-body p  { font-size: 13px; color: var(--body); }
+
+    .contact-form-card {
+      background: var(--white); border: 1px solid var(--line);
+      border-radius: 14px; overflow: hidden; box-shadow: var(--shadow);
+    }
+
+    .contact-form-header {
+      padding: 22px 28px; background: var(--navy); border-bottom: 1px solid var(--line);
+    }
+
+    .contact-form-header h3 {
+      font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 700; color: #fff;
+    }
+
+    .contact-form-header p { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 4px; }
+
+    .contact-form-body { padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+
+    textarea {
+      width: 100%; padding: 11px 14px;
+      background: var(--cream); border: 1.5px solid var(--line);
+      border-radius: 8px; font-family: 'Outfit', sans-serif;
+      font-size: 13px; color: var(--text); outline: none; resize: vertical;
+      min-height: 120px; transition: border-color .2s, box-shadow .2s;
+    }
+
+    textarea:focus { border-color: var(--navy); box-shadow: 0 0 0 3px rgba(15,32,68,.08); background: var(--white); }
+    textarea::placeholder { color: var(--muted); }
+
+    #toast {
+      position: fixed; bottom: 28px; right: 28px; z-index: 999;
+      background: var(--white); border: 1px solid var(--line);
+      border-left: 4px solid var(--navy);
+      border-radius: var(--r); padding: 14px 20px;
+      font-size: 13px; color: var(--text); max-width: 320px;
+      box-shadow: var(--shadow-lg); line-height: 1.5;
+      opacity: 0; transform: translateY(10px);
+      transition: opacity .3s, transform .3s; pointer-events: none;
+    }
+
+    #toast.show  { opacity: 1; transform: translateY(0); }
+    #toast.ok    { border-left-color: var(--success); }
+    #toast.error { border-left-color: var(--danger); }
+
+    .spinner {
+      width: 16px; height: 16px; flex-shrink: 0;
+      border: 2px solid var(--line); border-top-color: var(--navy);
+      border-radius: 50%; animation: spin .6s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @keyframes fadeUp   { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes fadeDown { from{opacity:0;transform:translateY(-16px)} to{opacity:1;transform:translateY(0)} }
+
+    @media (max-width: 900px) {
+      .hero, .about-hero, .contact-layout { grid-template-columns: 1fr; }
+      .inv-layout { grid-template-columns: 1fr; }
+      .inv-form-card { position: static; }
+      .features-grid, .team-grid, .inv-stats-row { grid-template-columns: 1fr 1fr; }
+      .hero-stats-grid { grid-template-columns: 1fr 1fr; }
+      .container { padding: 0 24px; }
+      nav .nav-inner { padding: 0 24px; }
+    }
+
+    @media (max-width: 600px) {
+      .features-grid, .team-grid, .inv-stats-row { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+
+    .delete-btn { color: rgb(255,0,0); cursor: pointer; }
+    .delete-btn:hover { opacity: 0.4; transition: 0.4s; }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    /* copies badge */
+    .copies-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 11px; font-weight: 600; color: var(--body);
+      background: var(--cream); border: 1px solid var(--line);
+      border-radius: 100px; padding: 3px 10px;
+    }
+    .copies-badge.low { color: var(--danger); background: #fdecea; border-color: #f3bbb7; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo" onclick="showPage('home')">
+      <div class="nav-logo-mark">📚</div>
+      <div class="nav-logo-text">
+        <span class="nav-logo-name">UniLib</span>
+        <span class="nav-logo-sub">University Library</span>
+      </div>
+    </div>
+    <ul class="nav-links">
+      <li><a href="#" onclick="showPage('home')"      id="nav-home"      class="active">Home</a></li>
+      <li><a href="#" onclick="showPage('books')"     id="nav-books"     >Books</a></li>
+      <li><a href="#" onclick="showPage('inventory')" id="nav-inventory" >Inventory</a></li>
+      <li><a href="#" onclick="showPage('about')"     id="nav-about"     >About</a></li>
+      <li><a href="#" onclick="showPage('contact')"   id="nav-contact"   >Contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active">
+  <div class="container">
+    <div class="hero">
+      <div class="hero-left">
+        <div class="hero-badge">University Library Management System</div>
+        <h1>Your Campus<br/><em>Library,</em> Digitized.</h1>
+        <p class="hero-desc">UniLib helps academic institutions track book availability, manage student records, and maintain an up-to-date inventory — all in one clean, easy-to-use platform.</p>
+        <div class="hero-actions">
+          <button class="btn btn-navy" onclick="showPage('books')">Browse Books →</button>
+          <button class="btn btn-outline" onclick="showPage('inventory')">Manage Inventory</button>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <div class="hero-card">
+          <div class="hero-card-title">📊 Library Overview</div>
+          <div class="hero-stats-grid">
+            <div class="hero-stat-item">
+              <div class="hero-stat-val" id="hs-total">—</div>
+              <div class="hero-stat-lbl">Total Records</div>
+            </div>
+            <div class="hero-stat-item">
+              <div class="hero-stat-val" id="hs-books">—</div>
+              <div class="hero-stat-lbl">Unique Titles</div>
+            </div>
+            <div class="hero-stat-item">
+              <div class="hero-stat-val" id="hs-avail">—</div>
+              <div class="hero-stat-lbl">Available</div>
+            </div>
+            <div class="hero-stat-item">
+              <div class="hero-stat-val" id="hs-out">—</div>
+              <div class="hero-stat-lbl">Unavailable</div>
+            </div>
+          </div>
+          <div class="hero-avail-bar">
+            <div class="avail-bar-label">
+              <span>Availability Rate</span>
+              <span id="avail-pct">—%</span>
+            </div>
+            <div class="avail-bar-track">
+              <div class="avail-bar-fill" id="avail-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="features">
+      <div class="features-label">What UniLib Offers</div>
+      <div class="features-grid">
+        <div class="feature-card reveal">
+          <div class="feature-icon">📖</div>
+          <h3>Book Catalog</h3>
+          <p>Browse all books in the library with real-time availability status. Filter by available or unavailable titles instantly.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">🗂️</div>
+          <h3>Student Inventory</h3>
+          <p>Keep detailed records of which student holds which book, with full address information and student number tracking.</p>
+        </div>
+        <div class="feature-card reveal">
+          <div class="feature-icon">🔍</div>
+          <h3>Smart Search</h3>
+          <p>Search across all records instantly by student name, book title, author, or student number with live filtering.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKS -->
+<div id="page-books" class="page">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Library Catalog</span>
+      <h2>Available Books</h2>
+      <p>Browse the full book catalog. Filter by availability to see which titles are ready to borrow.</p>
+    </div>
+
+    <div class="books-search">
+      <input type="text" id="books-search-input" placeholder="🔍  Search by title or author…" oninput="renderBooks()"/>
+    </div>
+
+    <div class="books-filter-bar">
+      <button class="filter-btn active" data-filter="all"         onclick="setBookFilter('all',this)">All Books</button>
+      <button class="filter-btn available"   data-filter="available"   onclick="setBookFilter('available',this)">✓ Available</button>
+      <button class="filter-btn unavailable" data-filter="unavailable" onclick="setBookFilter('unavailable',this)">✗ Unavailable</button>
+    </div>
+
+    <div class="books-grid" id="books-grid">
+      <div class="books-empty">
+        <span class="books-empty-icon">📚</span>
+        <p>Loading books…</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INVENTORY -->
+<div id="page-inventory" class="page">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Staff Portal</span>
+      <h2>Inventory Management</h2>
+      <p>Add new student book records and manage the full inventory database.</p>
+    </div>
+
+    <div class="inv-layout">
+      <div class="inv-form-card">
+        <div class="inv-form-header">
+          <span>📋</span>
+          <h3>Add New Record</h3>
+        </div>
+        <div class="inv-form-body">
+          <div class="form-group">
+            <label for="inv-name">Full Name</label>
+            <input type="text" id="inv-name" placeholder="e.g. Maria Santos"/>
+          </div>
+          <div class="form-group">
+            <label for="inv-stunum">Student Number</label>
+            <input type="text" id="inv-stunum" placeholder="e.g. 2024-103156"/>
+          </div>
+          <div class="form-group">
+            <label for="inv-addr1">Address Line 1</label>
+            <input type="text" id="inv-addr1" placeholder="Street / Barangay"/>
+          </div>
+          <div class="form-group">
+            <label for="inv-addr2">Address Line 2</label>
+            <input type="text" id="inv-addr2" placeholder="City / Province"/>
+          </div>
+          <div class="form-group">
+            <label for="inv-title">Book Title</label>
+            <input type="text" id="inv-title" placeholder="e.g. Introduction to Computing"/>
+          </div>
+          <div class="form-group">
+            <label for="inv-author">Author</label>
+            <input type="text" id="inv-author" placeholder="e.g. José Rizal"/>
+          </div>
+          <div class="form-group">
+            <label>Availability</label>
+            <div class="avail-toggle">
+              <label class="avail-opt sel-avail" id="lbl-avail">
+                <input type="radio" name="avail" value="available" checked onchange="updateAvailLabel()"/> ✓ Available
+              </label>
+              <label class="avail-opt" id="lbl-unavail">
+                <input type="radio" name="avail" value="unavailable" onchange="updateAvailLabel()"/> ✗ Unavailable
+              </label>
+            </div>
+          </div>
+          <div class="form-actions-inv">
+            <button class="btn btn-navy" style="flex:1" onclick="addItem()">+ Add Entry</button>
+            <button class="btn btn-outline btn-sm" onclick="clearForm()">Clear</button>
+            <div class="spinner" id="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="inv-right">
+        <div class="inv-stats-row">
+          <div class="inv-stat">
+            <div class="inv-stat-val" id="inv-total">0</div>
+            <div class="inv-stat-lbl">Total Records</div>
+          </div>
+          <div class="inv-stat">
+            <div class="inv-stat-val" id="inv-avail" style="color:var(--success)">0</div>
+            <div class="inv-stat-lbl">Available</div>
+          </div>
+          <div class="inv-stat">
+            <div class="inv-stat-val" id="inv-out" style="color:var(--danger)">0</div>
+            <div class="inv-stat-lbl">Unavailable</div>
+          </div>
+        </div>
+
+        <div class="inv-table-card">
+          <div class="inv-table-head">
+            <span class="inv-table-title">All Records</span>
+            <div class="tbl-search">
+              <span class="tbl-search-icon">⌕</span>
+              <input type="text" id="tbl-search" placeholder="Search…" oninput="filterTable()"/>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <div class="tbl-empty" id="tbl-body">
+              <span class="tbl-empty-icon">📋</span>
+              <p>No records yet.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<div id="page-about" class="page">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">About UniLab</span>
+      <h2>Built for Academic Excellence</h2>
+    </div>
+
+    <div class="about-hero">
+      <div>
+        <h2>A Smarter Way to Manage University Books</h2>
+        <p>UniLab is a student-built library inventory system designed to help universities and colleges digitize their book tracking process. No more paper logbooks, no more confusion about which books are available.</p>
+        <p>This system provides a clean, fast, and reliable way for library staff and students to interact with book records in real time.</p>
+        <button class="btn btn-navy" onclick="showPage('inventory')" style="margin-top:8px">Go to Inventory →</button>
+      </div>
+
+      <div class="about-img-mock">
+        <div style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:700;color:var(--navy);margin-bottom:8px;">University Library</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:24px;">Book Collection</div>
+        <div class="mock-shelf">
+          <div class="mock-book" style="width:28px;height:90px;background:#0f2044;"></div>
+          <div class="mock-book" style="width:22px;height:110px;background:#b8962e;"></div>
+          <div class="mock-book" style="width:18px;height:80px;background:#2d7a4f;"></div>
+          <div class="mock-book" style="width:30px;height:100px;background:#c0392b;"></div>
+          <div class="mock-book" style="width:20px;height:95px;background:#1a3361;"></div>
+          <div class="mock-book" style="width:24px;height:85px;background:#d4af55;"></div>
+          <div class="mock-book" style="width:18px;height:105px;background:#4a4a6a;"></div>
+          <div class="mock-book" style="width:26px;height:88px;background:#0f2044;"></div>
+        </div>
+        <div style="margin-top:20px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:10px 12px;background:var(--cream);border-radius:8px;border:1px solid var(--line);">
+            <span style="color:var(--body)">Total Books</span><strong style="color:var(--navy)" id="about-total">—</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:10px 12px;background:#e6f4ec;border-radius:8px;border:1px solid #b8dfc8;">
+            <span style="color:var(--success)">✓ Available</span><strong style="color:var(--success)" id="about-avail">—</strong>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:12px;padding:10px 12px;background:#fdecea;border-radius:8px;border:1px solid #f3bbb7;">
+            <span style="color:var(--danger)">✗ Unavailable</span><strong style="color:var(--danger)" id="about-out">—</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="about-mission">
+      <h3>Our Mission</h3>
+      <p>To provide a seamless, digital-first experience for university library management — helping students find books faster and staff maintain records more efficiently.</p>
+    </div>
+
+    <div class="about-team">
+      <h3>The Development Team</h3>
+      <div class="team-grid">
+        <div class="team-card">
+          <div class="team-avatar" style="background:#e8edf8;">👨‍💻</div>
+          <h4>Backend Developer</h4>
+          <div class="role">Renniel Dave Cabiao</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:#fef9ec;">🎨</div>
+          <h4>Frontend Developer</h4>
+          <div class="role">Patrick Joseph Reyes</div>
+        </div>
+        <div class="team-card">
+          <div class="team-avatar" style="background:#e6f4ec;">📊</div>
+          <h4>Systems Analyst</h4>
+          <div class="role">Janmae Escuro</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<div id="page-contact" class="page">
+  <div class="container">
+    <div class="section-head">
+      <span class="section-eyebrow">Get in Touch</span>
+      <h2>Contact the Library</h2>
+      <p>Have a question about a book or the system? Reach out to the university library staff.</p>
+    </div>
+
+    <div class="contact-layout">
+      <div class="contact-info">
+        <h3>We're Here to Help</h3>
+        <p>Whether you need help finding a book, have a question about your borrowing record, or want to report a system issue — get in touch with the library team.</p>
+
+        <div class="contact-items">
+          <div class="contact-item">
+            <div class="contact-item-icon">📍</div>
+            <div class="contact-item-body">
+              <h4>Library Location</h4>
+              <p>University Main Campus, SNAGAH, 2nd Floor</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon">🕐</div>
+            <div class="contact-item-body">
+              <h4>Operating Hours</h4>
+              <p>Monday – Friday: 8:00 AM – 6:00 PM<br/>Saturday: 9:00 AM – 5:00 PM</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon">📧</div>
+            <div class="contact-item-body">
+              <h4>Email</h4>
+              <p>lmsu@rtu.edu.ph</p>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-item-icon">📞</div>
+            <div class="contact-item-body">
+              <h4>Phone</h4>
+              <p>8534-8267 Loc. 1244</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="contact-form-card">
+        <div class="contact-form-header">
+          <h3>Send a Message</h3>
+          <p>We'll get back to you within one business day.</p>
+        </div>
+        <div class="contact-form-body">
+          <div class="form-group" style="margin-bottom:0">
+            <label for="c-name">Your Name</label>
+            <input type="text" id="c-name" placeholder="Juan dela Cruz"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label for="c-stunum">Student Number</label>
+            <input type="text" id="c-stunum" placeholder="2024-103156"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label for="c-subject">Subject</label>
+            <input type="text" id="c-subject" placeholder="e.g. Book Inquiry"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label for="c-msg">Message</label>
+            <textarea id="c-msg" placeholder="Type your message here…"></textarea>
+          </div>
+          <button class="btn btn-navy" style="width:100%" onclick="sendContact()">Send Message →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let allItems   = [];
+  let bookFilter = 'all';
+  let currentPage = 'home';
+
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    document.getElementById('nav-' + name).classList.add('active');
+    currentPage = name;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (name === 'books')     renderBooks();
+    if (name === 'inventory') filterTable();
+    setTimeout(triggerReveal, 100);
+    return false;
+  }
+
+  function triggerReveal() {
+    document.querySelectorAll('.reveal').forEach((el, i) => {
+      setTimeout(() => el.classList.add('visible'), i * 80);
+    });
+  }
+
+  function showToast(msg, type = 'ok') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'show ' + type;
+    clearTimeout(t._t); t._t = setTimeout(() => t.className = '', 3600);
+  }
+
+  function setLoading(on) {
+    document.getElementById('spinner').style.display = on ? 'block' : 'none';
+  }
+
+  function updateAvailLabel() {
+    const val = document.querySelector('input[name="avail"]:checked').value;
+    document.getElementById('lbl-avail').className   = 'avail-opt' + (val === 'available'   ? ' sel-avail'   : '');
+    document.getElementById('lbl-unavail').className = 'avail-opt' + (val === 'unavailable' ? ' sel-unavail' : '');
+  }
+
+  function clearForm() {
+    ['inv-name','inv-stunum','inv-addr1','inv-addr2','inv-title','inv-author']
+      .forEach(id => document.getElementById(id).value = '');
+    document.querySelector('input[name="avail"][value="available"]').checked = true;
+    updateAvailLabel();
+  }
+
+  function addItem() {
+    const Name   = document.getElementById('inv-name').value.trim();
+    const stunum = document.getElementById('inv-stunum').value.trim();
+    const addr1  = document.getElementById('inv-addr1').value.trim();
+    const addr2  = document.getElementById('inv-addr2').value.trim();
+    const title  = document.getElementById('inv-title').value.trim();
+    const Author = document.getElementById('inv-author').value.trim();
+    const avail  = document.querySelector('input[name="avail"]:checked').value;
+
+    if (!Name || !stunum || !title || !Author) {
+      showToast('Please fill in all required fields.', 'error'); return;
+    }
+
+    setLoading(true);
+    fetch('/api/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: Name,
+        student_number: stunum,
+        address_1: addr1,
+        address_2: addr2,
+        Book_title: title,
+        author: Author,
+        available: avail
+      })
+    })
+    .then(r => r.json())
+    .then(d => {
+      showToast(d.message || 'Record added successfully!', 'ok');
+      clearForm(); get_items();
+    })
+    .catch(() => showToast('Failed to connect to server.', 'error'))
+    .finally(() => setLoading(false));
+  }
+
+  function get_items() {
+    fetch('/api/get')
+      .then(r => r.json())
+      .then(items => {
+        allItems = items;
+        updateStats(items);
+        filterTable();
+        if (currentPage === 'books') renderBooks();
+      })
+      .catch(() => {});
+  }
+
+  function updateStats(items) {
+    const total = items.length;
+    const avail = items.filter(i => (i.available || 'available') === 'available').length;
+    const out   = total - avail;
+    const books = new Set(items.map(i => i.Book_title)).size;
+    const pct   = total > 0 ? Math.round(avail / total * 100) : 0;
+
+    document.getElementById('hs-total').textContent  = total;
+    document.getElementById('hs-books').textContent  = books;
+    document.getElementById('hs-avail').textContent  = avail;
+    document.getElementById('hs-out').textContent    = out;
+    document.getElementById('avail-pct').textContent = pct + '%';
+    document.getElementById('avail-fill').style.width = pct + '%';
+
+    document.getElementById('inv-total').textContent = total;
+    document.getElementById('inv-avail').textContent = avail;
+    document.getElementById('inv-out').textContent   = out;
+
+    document.getElementById('about-total').textContent = total;
+    document.getElementById('about-avail').textContent = avail;
+    document.getElementById('about-out').textContent   = out;
+  }
+
+  function setBookFilter(f, btn) {
+    bookFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderBooks();
+  }
+
+  /* ── FIXED renderBooks ── */
+  function renderBooks() {
+    const q    = (document.getElementById('books-search-input')?.value || '').toLowerCase();
+    const grid = document.getElementById('books-grid');
+
+    // Step 1: group all records by book title
+    const bookMap = {};
+    allItems.forEach(i => {
+      const key = (i.Book_title || '').toLowerCase();
+      if (!bookMap[key]) {
+        bookMap[key] = { ...i, copies: 0, borrowed: 0 };
+      }
+      bookMap[key].copies++;
+      if ((i.available || 'available') === 'unavailable') {
+        bookMap[key].borrowed++;
+      }
+    });
+
+    // Step 2: compute per-title availability
+    // unavailable only when ALL copies are borrowed
+    let books = Object.values(bookMap).map(b => ({
+      ...b,
+      available: b.borrowed < b.copies ? 'available' : 'unavailable'
+    }));
+
+    // Step 3: apply search
+    if (q) {
+      books = books.filter(b =>
+        (b.Book_title || '').toLowerCase().includes(q) ||
+        (b.author     || '').toLowerCase().includes(q)
+      );
+    }
+
+    // Step 4: apply availability filter
+    if (bookFilter === 'available') {
+      books = books.filter(b => b.available === 'available');
+    } else if (bookFilter === 'unavailable') {
+      books = books.filter(b => b.available === 'unavailable');
+    }
+
+    if (!books.length) {
+      grid.innerHTML = `
+        <div class="books-empty">
+          <span class="books-empty-icon">🔍</span>
+          <p>No books found matching your filter.</p>
+        </div>`;
+      return;
+    }
+
+    grid.innerHTML = books.map((item, idx) => {
+      const isAvail       = item.available === 'available';
+      const availableCopies = item.copies - item.borrowed;
+      const lowStock      = availableCopies === 1 && item.copies > 1;
+
+      return `
+        <div class="book-card" style="animation:fadeUp .4s ${idx*50}ms ease both">
+          <div class="book-card-spine ${isAvail ? 'available' : 'unavailable'}"></div>
+          <div class="book-card-body">
+            <div class="book-card-status" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+              <span class="tag-pill ${isAvail ? 'tag-available' : 'tag-unavailable'}">
+                ${isAvail ? '✓ Available' : '✗ Unavailable'}
+              </span>
+              ${lowStock ? '<span class="copies-badge low">⚠ Last copy</span>' : ''}
+            </div>
+            <div class="book-title">${item.Book_title || 'Untitled'}</div>
+            <div class="book-author">by ${item.author || 'Unknown Author'}</div>
+            <div class="book-meta">
+              <div class="book-meta-row">
+                <span>Total Copies</span>
+                <span>${item.copies}</span>
+              </div>
+              <div class="book-meta-row">
+                <span>Available Copies</span>
+                <span>${availableCopies > 0 ? availableCopies : '—'}</span>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterTable() {
+    const q = (document.getElementById('tbl-search')?.value || '').toLowerCase();
+    const filtered = allItems.filter(i =>
+      (i.name        || '').toLowerCase().includes(q) ||
+      (i.Book_title  || '').toLowerCase().includes(q) ||
+      (i.author      || '').toLowerCase().includes(q) ||
+      (i.student_num || '').toLowerCase().includes(q)
+    );
+    renderTable(filtered);
+  }
+
+  function renderTable(items) {
+    const wrap = document.getElementById('tbl-body');
+    if (!items.length) {
+      wrap.innerHTML = `<div class="tbl-empty"><span class="tbl-empty-icon">📋</span><p>No records found.</p></div>`;
+      return;
+    }
+    const rows = items.map((item, i) => {
+      const isAvail = (item.available || 'available') === 'available';
+      return `
+        <tr style="animation:fadeUp .3s ${i*30}ms ease both">
+          <td class="dim">${item.student_num || '—'}</td>
+          <td><strong>${item.name || '—'}</strong></td>
+          <td>${item.Book_title || '—'}</td>
+          <td class="dim">${item.author || '—'}</td>
+          <td><span class="delete-btn" onclick="delete_item('${item.student_num}')">Delete</span></td>
+        </tr>`;
+    }).join('');
+
+    wrap.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Student No.</th><th>Name</th>
+            <th>Book Title</th><th>Author</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function delete_item(student_num) {
+    if (!confirm('Remove this record?')) return;
+    fetch('/api/delete/' + student_num, { method: 'DELETE' })
+      .then(r => r.json())
+      .then(d => {
+        showToast(d.message || 'Record deleted.', 'ok');
+        get_items();
+      })
+      .catch(() => showToast('Failed to connect to server.', 'error'));
+  }
+
+  function sendContact() {
+    const name = document.getElementById('c-name').value.trim();
+    const msg  = document.getElementById('c-msg').value.trim();
+    if (!name || !msg) { showToast('Please fill in your name and message.', 'error'); return; }
+    showToast('Message sent! The library will respond shortly.', 'ok');
+    ['c-name','c-stunum','c-subject','c-msg'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  }
+
+  get_items();
+  triggerReveal();
+</script>
+</body>
+</html>
