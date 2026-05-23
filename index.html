@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!-- we can do internal style of defining the background color and foreground color or inline or external-->
+<html> 
+    <!--the define always in the header-->
+<head>
+    <title> My first Website </title> 
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+    <style>   
+        body{ 
+         background-image:url("matrix-style-background.png");
+         background-repeat: no-repeat; /* make the image unrepeatable*/
+         background-attachment: fixed; 
+         background-size: cover; /* cover the whole page of the website */
+         background-position: center;
+
+
+        }
+    </style>
+     <!-- you can define this in class so that it will become clean-->
+    <style>
+        
+       h1{ 
+        border-top-style: dotted;
+        border-bottom-style: dotted;
+        border-left-style: dotted;
+        border-right-style: dotted;
+
+        background-color: black;
+        color: green; /* color of the text */
+        font-family: "Press Start 2P", "consolas", "monaco";  /* the first one will be the used font if not available will be replaced by the second and so on*/
+        font-style: italic;
+        font-weight: bold;
+        font-size: 18px;
+        padding: 5px;
+       }
+
+    </style>
+    <style>
+        p{
+            color: cyan;
+            
+        }
+    </style>
+
+    <style>
+     #p1{ 
+        color:black;
+     }
+    </style>
+
+    <style>
+     .oddcolor{
+     color:coral;
+     }
+
+    </style>
+     <!-- any paragraph with class evencolor will have the color define in it-->
+   <style> 
+    .evencolor{ /* a class in which can be applied in each of the thing in the body */
+      color:chocolate; 
+    }
+   </style>
+
+   <style>
+
+    .border{
+        border-style: outset;
+        border-width: 5px;
+        border-color: green;
+        border-radius: 10px;
+        padding: 5px;  /* adjust the gap between the text and the border or a box */
+    }
+   </style>
+
+   <style>
+    #box1{
+        border: 5px solid;
+        border-radius: 10px;
+        width: 250px;
+        height: 250px;
+        font-size: 22px;
+        background: pink;
+        padding: 10px;
+        margin-top: 50px;
+        margin-left: 50px;
+        margin-bottom: 50px;
+
+        margin: 50px;
+
+        margin-left: auto;
+        margin-right: 50%;
+
+        margin-left: auto;
+        margin-right: auto; /* */
+        
+        
+
+
+        
+    }
+
+   </style>
+
+
+</head>
+<!-- the body-->
+<body>
+
+
+
+    <h1 class = "border"> ARCHIVE</h1>
+
+    <p id="p1"> hello word </p> <!--target the specific paragraph-->
+    <p class="oddcolor"> Welcome to my website </p>
+    <p class = "evencolor"> afajsbdjaksdaksdaklsdbna </p>
+    <p class = "border"> afajsbdjaksdaksdaklsdbna </p>
+    <p id="box1"> afajsbdjaksdaksdaklsdbna </p>
+    
+
+
+</body>
+</html>
